@@ -39,6 +39,30 @@ body.is-mobile .pickup-prompt{bottom:32%}
 body.is-mobile .weapon-card{top:80px;width:auto;right:16px;left:auto;max-width:60vw}
 body.is-mobile #fps{top:calc(76px + env(safe-area-inset-top,0px));right:16px}
 body.is-mobile #btnADS{right:120px;bottom:calc(128px + env(safe-area-inset-bottom,0px))}
+.minimap-wrap{position:absolute;top:66px;right:24px;width:190px;height:190px;pointer-events:none}
+.minimap-wrap canvas{width:100%;height:100%;border-radius:50%;border:1px solid #6eeaff55;background:#050b10cc;box-shadow:0 10px 40px #000a,inset 0 0 22px #000000aa}
+.minimap-wrap .mm-n{position:absolute;top:-3px;left:50%;transform:translateX(-50%);color:#78eaff;font-size:10px;font-weight:800;letter-spacing:.1em;text-shadow:0 0 6px #000;z-index:2}
+.killfeed{position:absolute;top:266px;right:24px;width:250px;display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+.killfeed .kf-item{padding:6px 12px;background:#071016d9;border-right:3px solid #ff4c5f;font-size:11px;letter-spacing:.06em;color:#ffdede;opacity:0;transform:translateX(40%);transition:.25s;white-space:nowrap}
+.killfeed .kf-item.show{opacity:1;transform:none}
+.killfeed .kf-item.friendly{border-color:var(--cyan);color:#dff9ff}
+.streak-text{position:absolute;top:30%;left:50%;transform:translate(-50%,-50%) scale(.8);text-align:center;font-size:34px;font-weight:900;letter-spacing:.08em;color:#ffbb55;text-shadow:0 0 24px #ffbb5588,0 4px 18px #000;opacity:0;transition:.25s}
+.streak-text.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.dmg-arrow{position:absolute;left:50%;top:50%;width:0;height:0;opacity:0;transition:opacity .18s}
+.dmg-arrow i{position:absolute;width:0;height:0;border-left:11px solid transparent;border-right:11px solid transparent;border-bottom:22px solid #ff4c5f;filter:drop-shadow(0 0 8px #ff4c5fbb);left:-11px;top:-152px}
+.match-timer{color:#dff9ff;margin-left:14px}
+.kd-line{color:#78eaff;margin-left:12px}
+.grenade-hud{position:absolute;left:28px;bottom:106px;font-size:11px;letter-spacing:.14em;color:#ffbb55;text-shadow:0 2px 8px #000}
+#btnGrenade{right:196px;bottom:calc(128px + env(safe-area-inset-bottom,0px));width:56px;height:56px;background:#3a2a0fc8;border-color:#ffbb5566;font-size:10px}
+#btnGrenade:active{background:#7a4a1aee;border-color:#ffcf8f}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:20px}
+.stats-grid div{border:1px solid #ffffff14;padding:10px;text-align:center}
+.stats-grid b{display:block;font-size:22px;color:#78eaff}
+.stats-grid span{font-size:10px;letter-spacing:.1em;color:#94a9b6}
+body.is-mobile .minimap-wrap{top:76px;right:12px;width:128px;height:128px}
+body.is-mobile .killfeed{top:206px;right:12px;width:180px}
+body.is-mobile .grenade-hud{bottom:172px;left:16px}
+body.is-mobile #btnGrenade{right:184px;bottom:calc(128px + env(safe-area-inset-bottom,0px));width:50px;height:50px}
 </style>
 </head>
 <body>
@@ -58,8 +82,8 @@ const IS_MOBILE = matchMedia('(pointer:coarse)').matches || ('ontouchstart' in w
 
 // ---- src/core/Input.js ----
 class Input {
-  constructor(canvas){this.canvas=canvas;this.keys=new Set();this.mouse={x:0,y:0,down:false};this.touchMove={x:0,y:0,active:false};this.locked=false;this.onFire=null;this.onReload=null;this.onHolster=null;this.onPause=null;this.onWeapon=null;this.onInteract=null;this.onArmory=null;this.onADS=null;this.ads=false;this.bind();}
-  bind(){addEventListener('keydown',e=>{this.keys.add(e.code);if(e.code==='KeyR')this.onReload?.();if(e.code==='KeyH'&&!e.repeat)this.onHolster?.();if(e.code==='KeyE'&&!e.repeat)this.onInteract?.();if(e.code==='Tab'&&!e.repeat){e.preventDefault();this.onArmory?.();}if(e.code==='Escape')this.onPause?.();if(/^Digit[1-9]$/.test(e.code))this.onWeapon?.(+e.code.slice(5)-1);});addEventListener('keyup',e=>this.keys.delete(e.code));addEventListener('mousedown',e=>{if(!this.locked){this.canvas.requestPointerLock();return;}if(e.button===0){this.mouse.down=true;this.onFire?.(true);}if(e.button===2){this.ads=true;this.onADS?.(true);}});addEventListener('mouseup',e=>{if(e.button===0){this.mouse.down=false;this.onFire?.(false);}if(e.button===2){this.ads=false;this.onADS?.(false);}});addEventListener('mousemove',e=>{if(this.locked){this.mouse.x+=e.movementX;this.mouse.y+=e.movementY;}});addEventListener('wheel',e=>this.onWeapon?.(e.deltaY>0?'next':'prev'));document.addEventListener('pointerlockchange',()=>this.locked=document.pointerLockElement===this.canvas);}
+  constructor(canvas){this.canvas=canvas;this.keys=new Set();this.mouse={x:0,y:0,down:false};this.touchMove={x:0,y:0,active:false};this.locked=false;this.onFire=null;this.onReload=null;this.onHolster=null;this.onPause=null;this.onWeapon=null;this.onInteract=null;this.onArmory=null;this.onADS=null;this.onGrenade=null;this.ads=false;this.bind();}
+  bind(){addEventListener('keydown',e=>{this.keys.add(e.code);if(e.code==='KeyR')this.onReload?.();if(e.code==='KeyH'&&!e.repeat)this.onHolster?.();if(e.code==='KeyE'&&!e.repeat)this.onInteract?.();if(e.code==='KeyG'&&!e.repeat)this.onGrenade?.();if(e.code==='Tab'&&!e.repeat){e.preventDefault();this.onArmory?.();}if(e.code==='Escape')this.onPause?.();if(/^Digit[1-9]$/.test(e.code))this.onWeapon?.(+e.code.slice(5)-1);});addEventListener('keyup',e=>this.keys.delete(e.code));addEventListener('mousedown',e=>{if(!this.locked){this.canvas.requestPointerLock();return;}if(e.button===0){this.mouse.down=true;this.onFire?.(true);}if(e.button===2){this.ads=true;this.onADS?.(true);}});addEventListener('mouseup',e=>{if(e.button===0){this.mouse.down=false;this.onFire?.(false);}if(e.button===2){this.ads=false;this.onADS?.(false);}});addEventListener('mousemove',e=>{if(this.locked){this.mouse.x+=e.movementX;this.mouse.y+=e.movementY;}});addEventListener('wheel',e=>this.onWeapon?.(e.deltaY>0?'next':'prev'));document.addEventListener('pointerlockchange',()=>this.locked=document.pointerLockElement===this.canvas);}
   down(code){return this.keys.has(code)}
   consumeMouse(){const v={x:this.mouse.x,y:this.mouse.y};this.mouse.x=this.mouse.y=0;return v;}
 }
@@ -643,7 +667,7 @@ function approxBoxNormal(box,point){
 }
 
 class Weapon{
- constructor(camera,scene,audio,ui,player,extras,worldMeshes,colliders){this.camera=camera;this.scene=scene;this.audio=audio;this.ui=ui;this.player=player;this.extras=extras;this.worldMeshes=worldMeshes||[];this.colliders=colliders||[];this.index=0;this.unlocked=new Set([0]);this.states=WEAPONS.map(w=>({mag:w.mag,reserve:Infinity}));this.group=new THREE.Group();camera.add(this.group);scene.add(camera);this.trigger=false;this.cool=0;this.reloading=false;this.holstered=false;this.anim=0;this.kick=0;this.kickVel=0;this.basePos=new THREE.Vector3(.22,-.29,-.82);this.muzzleLight=new THREE.PointLight(0xffb35a,0,8,2);scene.add(this.muzzleLight);this._flashTO=null;this._ray=new THREE.Ray();this._vec=new THREE.Vector3();this.buildFallback();this.apply();this.ads=false;this.baseFOV=75;this.currentFOV=75;}
+ constructor(camera,scene,audio,ui,player,extras,worldMeshes,colliders,matchStats){this.camera=camera;this.scene=scene;this.audio=audio;this.ui=ui;this.player=player;this.extras=extras;this.worldMeshes=worldMeshes||[];this.colliders=colliders||[];this.matchStats=matchStats;this.index=0;this.unlocked=new Set([0]);this.states=WEAPONS.map(w=>({mag:w.mag,reserve:Infinity}));this.group=new THREE.Group();camera.add(this.group);scene.add(camera);this.trigger=false;this.cool=0;this.reloading=false;this.holstered=false;this.anim=0;this.kick=0;this.kickVel=0;this.basePos=new THREE.Vector3(.22,-.29,-.82);this.muzzleLight=new THREE.PointLight(0xffb35a,0,8,2);scene.add(this.muzzleLight);this._flashTO=null;this._ray=new THREE.Ray();this._vec=new THREE.Vector3();this.buildFallback();this.apply();this.ads=false;this.baseFOV=75;this.currentFOV=75;}
  buildFallback(){this.group.clear();this.group.add(WeaponModelFactory.build(WEAPONS[this.index],false));this.group.traverse(o=>{if(o.isMesh){o.renderOrder=10;o.material.depthTest=false;o.castShadow=false;o.receiveShadow=false}});}
  apply(){const w=WEAPONS[this.index],s=this.states[this.index];this.cool=.25;this.reloading=false;this.anim=0;this.buildFallback();this.basePos.set(.18,-.27,-.88);this.group.position.copy(this.basePos);this.group.rotation.set(-.035,-.015,0);this.kick=0;this.kickVel=0;this.ui.updateAmmo(s.mag,s.reserve);this.ui.setWeapon(w);this.ui.setWeaponState('READY');this.ui.weaponInfo(w,true);this.audio.equip();this.baseFOV=75;}
  unlock(i){if(this.unlocked.has(i))return false;this.unlocked.add(i);this.index=i;this.apply();this.ui.toast('WEAPON ACQUIRED // '+WEAPONS[i].name);return true;}
@@ -655,6 +679,8 @@ class Weapon{
  fire(enemies){
   const w=WEAPONS[this.index],s=this.states[this.index];
   s.mag--;this.audio.shot();this.ui.updateAmmo(s.mag,s.reserve);this.ui.spread();
+  if(this.matchStats)this.matchStats.shotsFired++;
+  let hitAny=false;
   const spreadMult=this.ads?.3:1;
   this.player.addRecoil(w.recoil* (this.ads?.5:1),(Math.random()-.5)*w.recoil*.25);
   this.kickVel+=1.45+Math.min(2.5,w.recoil*22);this.kick=Math.max(this.kick,-.01);
@@ -685,7 +711,7 @@ class Weapon{
     if(intersects.length>0){
      const hit=intersects[0];
      const head=hit.point.y-bestEnemy.mesh.position.y>1.5;
-     bestEnemy.hit(w.damage*(head?1.7:1));this.audio.hit();this.ui.hit(head);
+     bestEnemy.hit(w.damage*(head?1.7:1));this.audio.hit();this.ui.hit(head);hitAny=true;
      if(pellet===0){mainHitKind='enemy';mainHitPoint=hit.point.clone();mainNormal=dir.clone().negate();}
     }
    }else if(pellet===0&&this.colliders.length){
@@ -704,6 +730,7 @@ class Weapon{
     }
    }
   }
+  if(hitAny&&this.matchStats)this.matchStats.shotsHit++;
   if(this.extras&&mainDir){
    const muzzle=new THREE.Vector3(0,.015,-1.1);this.group.localToWorld(muzzle);
    const isRocket=w.type==='launcher';
@@ -718,6 +745,54 @@ class WeaponPickup{
  constructor(scene,data){this.scene=scene;this.index=data.index;this.pos=data.pos;this.t=Math.random()*10;this.mesh=new THREE.Group();const base=new THREE.Mesh(new THREE.CylinderGeometry(.72,.88,.12,24),new THREE.MeshStandardMaterial({color:0x102d36,emissive:0x0b7185,emissiveIntensity:2.8,metalness:.72,roughness:.24}));const ring=new THREE.Mesh(new THREE.TorusGeometry(.62,.025,10,32),new THREE.MeshStandardMaterial({color:0x63eaff,emissive:0x22cceb,emissiveIntensity:5}));ring.rotation.x=Math.PI/2;ring.position.y=.1;const gun=WeaponModelFactory.build(WEAPONS[this.index],true);gun.position.y=.82;gun.rotation.set(.1,.35,0);gun.scale.setScalar(.95);gun.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=false;}});this.mesh.add(base,ring,gun);this.mesh.position.copy(this.pos);scene.add(this.mesh)}
  update(dt,player){this.t+=dt;this.mesh.rotation.y+=dt*.45;this.mesh.children[2].position.y=.82+Math.sin(this.t*2)*.08;return this.mesh.position.distanceTo(player.position)<2.6}
  remove(){this.scene.remove(this.mesh);this.taken=true}
+}
+
+// ---- src/game/Grenade.js ----
+class GrenadeSystem{
+ constructor(scene,camera,player,audio,ui,extras,colliders){
+  this.scene=scene;this.camera=camera;this.player=player;this.audio=audio;this.ui=ui;this.extras=extras;this.colliders=colliders;
+  this.count=3;this.cooldown=0;this.active=[];
+  this.geo=new THREE.SphereGeometry(0.09,10,10);
+  this.mat=new THREE.MeshStandardMaterial({color:0x2b3a2b,roughness:.6,metalness:.2});
+  this.ui.grenadeCount(this.count);
+ }
+ throw_(){
+  if(this.count<=0||this.cooldown>0)return;
+  this.count--;this.cooldown=.6;this.ui.grenadeCount(this.count);
+  const dir=new THREE.Vector3();this.camera.getWorldDirection(dir);
+  const pos=this.camera.position.clone().addScaledVector(dir,.6);
+  const vel=dir.clone().multiplyScalar(20).add(new THREE.Vector3(0,5,0));
+  const mesh=new THREE.Mesh(this.geo,this.mat);mesh.position.copy(pos);mesh.castShadow=true;this.scene.add(mesh);
+  this.active.push({mesh,vel,fuse:1.6});
+  this.audio.tone(180,.05,'triangle',.05);
+  this.ui.toast('FRAG OUT');
+ }
+ explode(g,enemies){
+  const p=g.mesh.position.clone();
+  this.scene.remove(g.mesh);
+  this.audio.noise(.35,.4,900);this.audio.tone(70,.3,'sawtooth',.2);
+  const light=new THREE.PointLight(0xffaa55,18,16,2);light.position.copy(p);this.scene.add(light);
+  setTimeout(()=>this.scene.remove(light),120);
+  if(this.extras)this.extras.spawnWallHitImpact(p,new THREE.Vector3(0,1,0));
+  for(const e of enemies){
+   if(e.dead)continue;
+   const d=e.mesh.position.distanceTo(p);
+   if(d<9){const dmg=Math.max(0,1-d/9)*110;e.hit(dmg);}
+  }
+  const pd=this.player.position.distanceTo(p);
+  if(pd<7){this.player.damage(Math.max(0,1-pd/7)*55);this.ui.damage();}
+ }
+ update(dt,enemies){
+  if(this.cooldown>0)this.cooldown-=dt;
+  for(let i=this.active.length-1;i>=0;i--){
+   const g=this.active[i];
+   g.fuse-=dt;g.vel.y-=18*dt;
+   g.mesh.position.addScaledVector(g.vel,dt);
+   const groundY=getGroundHeight(g.mesh.position.x,g.mesh.position.z);
+   if(g.mesh.position.y<=groundY+.09){g.mesh.position.y=groundY+.09;g.vel.y*=-.35;g.vel.x*=.6;g.vel.z*=.6;}
+   if(g.fuse<=0){this.explode(g,enemies);this.active.splice(i,1);}
+  }
+ }
 }
 
 // ---- src/game/Enemy.js ----
@@ -769,8 +844,8 @@ const ENEMY_GEO={
 };
 
 class Enemy{
- constructor(scene,pos,player,ui,colliders){
-  this.scene=scene;this.player=player;this.ui=ui;this.colliders=colliders;
+ constructor(scene,pos,player,ui,colliders,matchStats){
+  this.scene=scene;this.player=player;this.ui=ui;this.colliders=colliders;this.matchStats=matchStats;
   this.health=100;this.cool=1+Math.random();this.phase=Math.random()*10;
   this.dead=false;this.deadTimer=0;this.shootTimer=0;this._losTimer=Math.random()*.15;this._losCached=false;
   this.role=Math.random()<0.35?'marksman':'rusher';
@@ -919,6 +994,16 @@ class Enemy{
    this.dead=true;
    this.model.play('die');
    this.ui.toast('HOSTILE NEUTRALISED');
+   if(this.matchStats){
+    const now=performance.now()/1000;
+    this.matchStats.streakCount=(now-this.matchStats.lastKillTime<4)?this.matchStats.streakCount+1:1;
+    this.matchStats.lastKillTime=now;
+    this.matchStats.kills++;
+    this.ui.killfeed('YOU ELIMINATED HOSTILE',true);
+    const streakNames={2:'DOUBLE KILL',3:'TRIPLE KILL',4:'MULTI KILL',5:'RAMPAGE'};
+    if(streakNames[this.matchStats.streakCount])this.ui.streak(streakNames[this.matchStats.streakCount]);
+    else if(this.matchStats.streakCount>5)this.ui.streak(this.matchStats.streakCount+' KILL STREAK');
+   }
   }
  }
  hasLOS(){
@@ -969,7 +1054,13 @@ class Enemy{
     const playerSpeed=Math.min(1,this.player.velocity.length()/8);
     let accuracy=THREE.MathUtils.clamp(.56-d*.014-playerSpeed*.18,.16,.48);
     if(this.role==='marksman')accuracy=Math.min(accuracy+0.12,0.72);
-    if(Math.random()<accuracy){this.player.damage(5+Math.random()*5);this.ui.damage();}
+    if(Math.random()<accuracy){
+     this.player.damage(5+Math.random()*5);this.ui.damage();
+     const ddx=this.mesh.position.x-this.player.position.x,ddz=this.mesh.position.z-this.player.position.z;
+     const yaw=this.player.yaw,fx=-Math.sin(yaw),fz=-Math.cos(yaw),rx=Math.cos(yaw),rz=-Math.sin(yaw);
+     const fComp=ddx*fx+ddz*fz,rComp=ddx*rx+ddz*rz;
+     this.ui.damageDir(Math.atan2(rComp,fComp)*180/Math.PI);
+    }
     else this.ui.toast('INCOMING FIRE');
    }
   }else{
@@ -1175,13 +1266,48 @@ class FPSExtrasPack {
 
 // ---- src/ui/UI.js ----
 class UI{
- constructor(root){this.root=root;this.root.innerHTML=`<div id="menu" class="screen"><div class="panel"><div class="eyebrow">PHASE 3 // 21-WEAPON ARSENAL</div><div class="title">IRON<br>VEIL</div><p class="subtitle">Deploy with a Glock 17 into a shattered warzone sector. Search the ruined plaza, watchtowers and outer rockline to recover twenty additional weapons from armoury caches. Eliminate all hostiles to secure victory.</p><button id="deploy" class="btn">Deploy <small>CLICK TO LOCK MOUSE</small></button><div class="statline"><span>INTERACT / COLLECT</span><b>E</b></div><div class="statline"><span>SELECT OWNED WEAPONS</span><b>1–9 / MOUSE WHEEL</b></div><div class="statline"><span>FIRE / RELOAD / HOLSTER / ADS</span><b>MOUSE 1 / R / H / RMB</b></div><div class="statline"><span>ARSENAL</span><b>21 OF 40 CC0 SOURCE MODELS</b></div></div></div><div id="hud" class="hud hidden"><div class="topbar"><span class="compass">N 018°</span><span class="objective">OBJECTIVE // LAST ONE STANDING</span><span id="enemyCount" style="color:#ffbb55;margin-left:12px;">ENEMIES: 0</span></div><div class="bottom-left"><div class="health-row"><div class="health-num" id="hp">100</div><div><div class="label">VITALS</div><div class="bar" style="width:190px"><i id="hpbar" style="width:100%"></i></div><div class="bar armor" style="width:150px"><i id="armorbar" style="width:50%"></i></div></div></div></div><div class="bottom-right"><div><span class="ammo" id="ammo">17</span><span class="reserve" id="reserve">/68</span></div><div class="weapon-name" id="weaponName">GLOCK 17</div><div id="weaponState" class="weapon-state">READY</div></div><div id="crosshair" class="crosshair"><i class="l"></i><i class="r"></i><i class="t"></i><i class="b"></i></div><div id="scopeOverlay" class="scope-overlay"><div class="scope-crosshair"><div class="scope-dot"></div></div></div><div id="hit" class="hitmarker"></div><div id="damage" class="damage-flash"></div><div id="toast" class="toast"></div><div id="pickupPrompt" class="pickup-prompt"></div><div id="weaponCard" class="weapon-card"></div><div id="fps" class="fps"></div></div><div id="armory" class="armory hidden"><button id="closeArmory" class="btn armory-close">Close [TAB]</button><div id="armoryList" class="armory-list"></div><div class="preview-wrap"><canvas id="previewCanvas"></canvas></div><div id="armoryStats" class="armory-stats"></div></div><div id="pause" class="screen hidden"><div class="panel"><div class="eyebrow">TACTICAL PAUSE</div><h1>Systems suspended</h1><div class="pause-grid"><button id="resume" class="btn">Resume</button><button id="restart" class="btn">Restart</button></div></div></div><div id="victory" class="screen hidden victory"><div class="panel"><div class="eyebrow">MISSION COMPLETE</div><div class="title">VICTORY</div><p class="subtitle">All hostiles eliminated. Last One Standing.</p><button id="playAgain" class="btn">Play again</button></div></div>`;this.menu=this.q('#menu');this.hud=this.q('#hud');this.pause=this.q('#pause');this.armory=this.q('#armory');this.victory=this.q('#victory');}
+ constructor(root){this.root=root;this.root.innerHTML=`<div id="menu" class="screen"><div class="panel"><div class="eyebrow">PHASE 3 // 21-WEAPON ARSENAL</div><div class="title">IRON<br>VEIL</div><p class="subtitle">Deploy with a Glock 17 into a shattered warzone sector. Search the ruined plaza, watchtowers and outer rockline to recover twenty additional weapons from armoury caches. Eliminate all hostiles to secure victory.</p><button id="deploy" class="btn">Deploy <small>CLICK TO LOCK MOUSE</small></button><div class="statline"><span>INTERACT / COLLECT</span><b>E</b></div><div class="statline"><span>SELECT OWNED WEAPONS</span><b>1–9 / MOUSE WHEEL</b></div><div class="statline"><span>FIRE / RELOAD / HOLSTER / ADS</span><b>MOUSE 1 / R / H / RMB</b></div><div class="statline"><span>THROW FRAG GRENADE</span><b>G</b></div><div class="statline"><span>RADAR</span><b>MINIMAP TRACKS NEARBY HOSTILES</b></div><div class="statline"><span>ARSENAL</span><b>21 OF 40 CC0 SOURCE MODELS</b></div></div></div><div id="hud" class="hud hidden"><div class="topbar"><span class="compass" id="compassText">N 000°</span><span class="objective">OBJECTIVE // LAST ONE STANDING</span><span id="enemyCount" style="color:#ffbb55;margin-left:12px;">ENEMIES: 0</span><span class="match-timer" id="matchTimer">00:00</span><span class="kd-line" id="kdLine">ELIMS 0/0</span></div><div class="bottom-left"><div class="health-row"><div class="health-num" id="hp">100</div><div><div class="label">VITALS</div><div class="bar" style="width:190px"><i id="hpbar" style="width:100%"></i></div><div class="bar armor" style="width:150px"><i id="armorbar" style="width:50%"></i></div></div></div></div><div class="bottom-right"><div><span class="ammo" id="ammo">17</span><span class="reserve" id="reserve">/68</span></div><div class="weapon-name" id="weaponName">GLOCK 17</div><div id="weaponState" class="weapon-state">READY</div></div><div id="crosshair" class="crosshair"><i class="l"></i><i class="r"></i><i class="t"></i><i class="b"></i></div><div id="scopeOverlay" class="scope-overlay"><div class="scope-crosshair"><div class="scope-dot"></div></div></div><div id="hit" class="hitmarker"></div><div id="damage" class="damage-flash"></div><div id="toast" class="toast"></div><div id="pickupPrompt" class="pickup-prompt"></div><div id="weaponCard" class="weapon-card"></div><div id="fps" class="fps"></div><div class="minimap-wrap"><span class="mm-n">N</span><canvas id="minimap" width="200" height="200"></canvas></div><div class="killfeed" id="killfeed"></div><div class="streak-text" id="streakText"></div><div class="dmg-arrow" id="dmgArrow"><i></i></div><div class="grenade-hud" id="grenadeHud">FRAGS ×3</div></div><div id="armory" class="armory hidden"><button id="closeArmory" class="btn armory-close">Close [TAB]</button><div id="armoryList" class="armory-list"></div><div class="preview-wrap"><canvas id="previewCanvas"></canvas></div><div id="armoryStats" class="armory-stats"></div></div><div id="pause" class="screen hidden"><div class="panel"><div class="eyebrow">TACTICAL PAUSE</div><h1>Systems suspended</h1><div class="pause-grid"><button id="resume" class="btn">Resume</button><button id="restart" class="btn">Restart</button></div><div class="stats-grid" id="pauseStats"></div></div></div><div id="victory" class="screen hidden victory"><div class="panel"><div class="eyebrow">MISSION COMPLETE</div><div class="title">VICTORY</div><p class="subtitle">All hostiles eliminated. Last One Standing.</p><button id="playAgain" class="btn">Play again</button><div class="stats-grid" id="victoryStats"></div></div></div>`;this.menu=this.q('#menu');this.hud=this.q('#hud');this.pause=this.q('#pause');this.armory=this.q('#armory');this.victory=this.q('#victory');this.minimap=this.q('#minimap');this.mmCtx=this.minimap.getContext('2d');this.killfeedEl=this.q('#killfeed');}
  q(s){return this.root.querySelector(s)} start(){this.menu.classList.add('hidden');this.hud.classList.remove('hidden')} updateAmmo(m,r){this.q('#ammo').textContent=m;this.q('#reserve').textContent='/∞'} updateVitals(p){this.q('#hp').textContent=Math.ceil(p.health);this.q('#hpbar').style.width=p.health+'%';this.q('#armorbar').style.width=p.armor+'%'} hit(head=false){const e=this.q('#hit');e.style.filter=head?'sepia(1) saturate(8) hue-rotate(320deg)':'';e.classList.add('show');setTimeout(()=>e.classList.remove('show'),100)} spread(){const c=this.q('#crosshair');c.style.transform='scale(1.45)';setTimeout(()=>c.style.transform='',70)} damage(){const e=this.q('#damage');e.style.opacity=.85;setTimeout(()=>e.style.opacity=0,110)} toast(t){const e=this.q('#toast');e.textContent=t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),1700)} setFPS(v){this.q('#fps').textContent=v+' FPS'} setCrosshair(v){this.q('#crosshair').classList.toggle('hidden-weapon',!v)} setWeaponState(t){this.q('#weaponState').textContent=t} setWeapon(w){this.q('#weaponName').textContent=w.name}
  prompt(w,show){const e=this.q('#pickupPrompt');e.textContent=show?'[ E ] COLLECT '+w.name+' // '+w.role:'';e.classList.toggle('show',show)}
  weaponInfo(w,owned=false){const e=this.q('#weaponCard');e.innerHTML=`<h3>${w.name}</h3><p>${w.desc}</p><div class="specs"><span>MAKER <b>${w.maker}</b></span><span>CALIBRE <b>${w.calibre}</b></span><span>CLASS <b>${w.role}</b></span><span>MAGAZINE <b>${w.mag}</b></span></div>`;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2600)}
  updateEnemyCount(count){this.q('#enemyCount').textContent='ENEMIES: '+count}
  showVictory(){this.victory.classList.remove('hidden');this.hud.classList.add('hidden')}
  setScope(v){this.q('#scopeOverlay').classList.toggle('active',v)}
+ _fmtTime(s){const m=Math.floor(s/60),ss=Math.floor(s%60);return String(m).padStart(2,'0')+':'+String(ss).padStart(2,'0')}
+ updateMatch(time,kills,total){this.q('#matchTimer').textContent=this._fmtTime(time);this.q('#kdLine').textContent='ELIMS '+kills+'/'+total}
+ updateCompass(deg){const dirs=['N','NE','E','SE','S','SW','W','NW'];const idx=(Math.round(deg/45)%8+8)%8;this.q('#compassText').textContent=dirs[idx]+' '+String(Math.round(deg)).padStart(3,'0')+'°'}
+ grenadeCount(n){this.q('#grenadeHud').textContent='FRAGS ×'+n}
+ killfeed(text,friendly=true){const el=document.createElement('div');el.className='kf-item'+(friendly?' friendly':'');el.textContent=text;this.killfeedEl.appendChild(el);requestAnimationFrame(()=>el.classList.add('show'));while(this.killfeedEl.children.length>5)this.killfeedEl.removeChild(this.killfeedEl.firstChild);setTimeout(()=>{el.classList.remove('show');setTimeout(()=>el.remove(),300)},3200)}
+ streak(text){const e=this.q('#streakText');e.classList.remove('show');void e.offsetWidth;e.textContent=text;e.classList.add('show');clearTimeout(this._streakTO);this._streakTO=setTimeout(()=>e.classList.remove('show'),1500)}
+ damageDir(angleDeg){const e=this.q('#dmgArrow');e.style.transform='translate(-50%,-50%) rotate('+angleDeg+'deg)';e.style.opacity=1;clearTimeout(this._dmgDirTO);this._dmgDirTO=setTimeout(()=>e.style.opacity=0,850)}
+ finalStats(sel,stats){const acc=stats.shotsFired?Math.round(stats.shotsHit/stats.shotsFired*100):0;this.q(sel).innerHTML='<div><b>'+stats.kills+'</b><span>ELIMINATIONS</span></div><div><b>'+this._fmtTime(stats.time)+'</b><span>TIME SURVIVED</span></div><div><b>'+acc+'%</b><span>ACCURACY</span></div>'}
+ updateMinimap(player,enemies,pickups,medkits){
+  const ctx=this.mmCtx,c=this.minimap,W=c.width,H=c.height,cx=W/2,cy=H/2,R=Math.min(W,H)/2-4;
+  ctx.clearRect(0,0,W,H);
+  ctx.strokeStyle='rgba(120,234,255,0.16)';
+  for(let i=1;i<=3;i++){ctx.beginPath();ctx.arc(cx,cy,R*(i/3),0,Math.PI*2);ctx.stroke();}
+  const RANGE=95,scale=R/RANGE;
+  ctx.save();ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.clip();
+  if(pickups)for(const p of pickups){if(p.taken)continue;const dx=p.mesh.position.x-player.position.x,dz=p.mesh.position.z-player.position.z;if(Math.hypot(dx,dz)>RANGE)continue;ctx.fillStyle='#5be9ff';ctx.beginPath();ctx.arc(cx+dx*scale,cy+dz*scale,2.4,0,Math.PI*2);ctx.fill();}
+  if(medkits)for(const m of medkits){const dx=m.group.position.x-player.position.x,dz=m.group.position.z-player.position.z;if(Math.hypot(dx,dz)>RANGE)continue;ctx.fillStyle='#63ff9a';ctx.beginPath();ctx.arc(cx+dx*scale,cy+dz*scale,2.6,0,Math.PI*2);ctx.fill();}
+  for(const e of enemies){
+   if(e.dead)continue;
+   let dx=e.mesh.position.x-player.position.x,dz=e.mesh.position.z-player.position.z;const d=Math.hypot(dx,dz);
+   if(d>RANGE*1.7)continue;
+   let clamped=false;
+   if(d>RANGE){const k=RANGE/d;dx*=k;dz*=k;clamped=true;}
+   const hot=e.shootTimer>0;
+   ctx.fillStyle=hot?'#ff4c5f':(clamped?'rgba(255,90,90,0.55)':'#ff5a5a');
+   ctx.beginPath();ctx.arc(cx+dx*scale,cy+dz*scale,hot?4.2:3.2,0,Math.PI*2);ctx.fill();
+   if(hot){ctx.strokeStyle='#ff4c5f';ctx.lineWidth=1.4;ctx.beginPath();ctx.arc(cx+dx*scale,cy+dz*scale,6.5,0,Math.PI*2);ctx.stroke();}
+  }
+  ctx.restore();
+  const yaw=player.yaw,fx=-Math.sin(yaw),fz=-Math.cos(yaw);
+  ctx.save();ctx.translate(cx,cy);ctx.rotate(Math.atan2(fx,-fz));
+  ctx.fillStyle='#eaffff';ctx.strokeStyle='#0b3540';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(0,-9);ctx.lineTo(6,7);ctx.lineTo(0,4);ctx.lineTo(-6,7);ctx.closePath();ctx.fill();ctx.stroke();
+  ctx.restore();
+ }
 }
 
 class ArmoryUI{
@@ -1198,7 +1324,7 @@ class TouchControls{
   this.root=document.createElement('div');
   this.root.id='touchLayer';
   this.root.className='hidden';
-  this.root.innerHTML=`<div id="touchLook"></div><div id="joyBase"><div id="joyKnob"></div></div><div id="btnFire" class="tbtn">FIRE</div><div id="btnJump" class="tbtn">JUMP</div><div id="btnReload" class="tbtn">RLD</div><div id="btnInteract" class="tbtn">E</div><div id="btnPrevWeapon" class="tbtn">◀</div><div id="btnNextWeapon" class="tbtn">▶</div><div id="btnPause" class="tbtn">❚❚</div><div id="btnArmory" class="tbtn">▤</div><div id="btnADS" class="tbtn">ADS</div>`;
+  this.root.innerHTML=`<div id="touchLook"></div><div id="joyBase"><div id="joyKnob"></div></div><div id="btnFire" class="tbtn">FIRE</div><div id="btnJump" class="tbtn">JUMP</div><div id="btnReload" class="tbtn">RLD</div><div id="btnInteract" class="tbtn">E</div><div id="btnPrevWeapon" class="tbtn">◀</div><div id="btnNextWeapon" class="tbtn">▶</div><div id="btnPause" class="tbtn">❚❚</div><div id="btnArmory" class="tbtn">▤</div><div id="btnADS" class="tbtn">ADS</div><div id="btnGrenade" class="tbtn">FRAG</div>`;
   document.querySelector('#ui-root').appendChild(this.root);
   this.q=s=>this.root.querySelector(s);
   this._bindJoystick();
@@ -1234,6 +1360,7 @@ class TouchControls{
   bind('#btnPause',()=>this.input.onPause?.());
   bind('#btnArmory',()=>this.input.onArmory?.());
   bind('#btnADS',()=>{this.input.ads=true;this.input.onADS?.(true);},()=>{this.input.ads=false;this.input.onADS?.(false);});
+  bind('#btnGrenade',()=>this.input.onGrenade?.());
  }
 }
 
@@ -1262,10 +1389,10 @@ class RendererSystem{
 }
 
 // ---- src/main.js ----
-const canvas=document.querySelector('#game'),root=document.querySelector('#ui-root');const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,.05,700);const world=buildArena(scene),colliders=world.colliders;const ui=new UI(root),input=new Input(canvas),audio=new AudioSystem(),renderer=new RendererSystem(canvas,scene,camera),player=new Player(camera,input,colliders),extras=new FPSExtrasPack(scene),weapon=new Weapon(camera,scene,audio,ui,player,extras,world.worldMeshes,colliders);const armory=new ArmoryUI(ui,weapon,input);const touch=IS_MOBILE?new TouchControls(input):null;player.position.set(world.playerSpawn.x,world.playerSpawn.y+player.height,world.playerSpawn.z);camera.position.copy(player.position);const enemies=world.enemySpawns.map(p=>new Enemy(scene,new THREE.Vector3(...p),player,ui,colliders)),pickups=world.pickupSpawns.map(p=>new WeaponPickup(scene,p));for(let i=0;i<6;i++){const s=findFreeSpot(colliders,20,150);extras.spawnMedkit(s.x,s.z,s.y);}let nearPickup=null,running=false,last=performance.now(),fpsT=0,frames=0,lowFpsStreak=0,downgradeCooldown=0;
+const canvas=document.querySelector('#game'),root=document.querySelector('#ui-root');const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,.05,700);const world=buildArena(scene),colliders=world.colliders;const ui=new UI(root),input=new Input(canvas),audio=new AudioSystem(),renderer=new RendererSystem(canvas,scene,camera),player=new Player(camera,input,colliders),extras=new FPSExtrasPack(scene);const matchStats={kills:0,shotsFired:0,shotsHit:0,time:0,lastKillTime:-99,streakCount:0};const weapon=new Weapon(camera,scene,audio,ui,player,extras,world.worldMeshes,colliders,matchStats);const grenades=new GrenadeSystem(scene,camera,player,audio,ui,extras,colliders);const armory=new ArmoryUI(ui,weapon,input);const touch=IS_MOBILE?new TouchControls(input):null;player.position.set(world.playerSpawn.x,world.playerSpawn.y+player.height,world.playerSpawn.z);camera.position.copy(player.position);const enemies=world.enemySpawns.map(p=>new Enemy(scene,new THREE.Vector3(...p),player,ui,colliders,matchStats)),pickups=world.pickupSpawns.map(p=>new WeaponPickup(scene,p));const totalEnemies=enemies.length;for(let i=0;i<6;i++){const s=findFreeSpot(colliders,20,150);extras.spawnMedkit(s.x,s.z,s.y);}let nearPickup=null,running=false,last=performance.now(),fpsT=0,frames=0,lowFpsStreak=0,downgradeCooldown=0;
 if(IS_MOBILE){document.body.classList.add('is-mobile');const hint=ui.q('#deploy small');if(hint)hint.textContent='TAP TO DEPLOY';ui.q('.subtitle').textContent='Deploy into a shattered warzone sector. Use the left stick to move, drag anywhere to look, and the arsenal is scattered across the ruined plaza, watchtowers and outer rockline.';[...ui.q('.panel').querySelectorAll('.statline')].forEach(el=>el.remove());}
-ui.q('#deploy').onclick=()=>{audio.ensure();running=true;ui.start();touch?.show(true);if(!IS_MOBILE&&canvas.requestPointerLock){try{canvas.requestPointerLock()}catch(e){}}requestAnimationFrame(loop)};ui.q('#resume').onclick=()=>{ui.pause.classList.add('hidden');running=true;if(!IS_MOBILE)canvas.requestPointerLock();touch?.show(true)};ui.q('#restart').onclick=()=>location.reload();ui.q('#playAgain').onclick=()=>location.reload();input.onFire=v=>weapon.setTrigger(v);input.onReload=()=>weapon.reload();input.onHolster=()=>weapon.toggleHolster();input.onWeapon=i=>weapon.switchTo(i);input.onArmory=()=>{running=false;armory.toggle();if(!armory.open)running=true;touch?.show(!armory.open)};input.onInteract=()=>{if(nearPickup&&!nearPickup.taken){weapon.unlock(nearPickup.index);nearPickup.remove();nearPickup=null;ui.prompt(null,false)}};input.onPause=()=>{if(ui.menu.classList.contains('hidden')&&ui.victory.classList.contains('hidden')){running=!running;ui.pause.classList.toggle('hidden',running);touch?.show(running)}};input.onADS=(v)=>{weapon.toggleADS(v);ui.setScope(v);};
-function loop(now){requestAnimationFrame(loop);const dt=Math.min(.033,(now-last)/1000);last=now;if(running){player.update(dt);weapon.update(dt,enemies);for(const e of enemies) e.update(dt);const alive=enemies.filter(e=>!e.dead);ui.updateEnemyCount(alive.length);extras.update(dt);for(let i=extras.medkits.length-1;i>=0;i--){const mk=extras.medkits[i];if(player.health<100&&mk.group.position.distanceTo(player.position)<2.2){player.health=Math.min(100,player.health+35);scene.remove(mk.group);extras.medkits.splice(i,1);ui.toast('MEDKIT RECOVERED // +35 VITALS');}}nearPickup=null;let best=Infinity;for(const p of pickups)if(!p.taken&&p.update(dt,player)){const d=p.mesh.position.distanceTo(player.position);if(d<best){best=d;nearPickup=p}}ui.prompt(nearPickup?WEAPONS[nearPickup.index]:null,!!nearPickup);touch?.setInteractVisible(!!nearPickup);ui.updateVitals(player);if(player.health<=0){running=false;ui.pause.classList.remove('hidden');ui.pause.querySelector('h1').textContent='Operator down';touch?.show(false)}if(weapon.unlocked.size===WEAPONS.length)ui.toast('FULL ARSENAL RECOVERED // 21 OF 21');if(alive.length===0&&!weapon.holstered){running=false;ui.showVictory();touch?.show(false);}}renderer.render(dt);fpsT+=dt;frames++;if(fpsT>.5){const fps=frames/fpsT;ui.setFPS(Math.round(fps));fpsT=frames=0;if(downgradeCooldown>0)downgradeCooldown--;if(running){if(fps<24){lowFpsStreak++;if(lowFpsStreak>=4&&downgradeCooldown<=0&&renderer.qualityLevel<3){renderer.downgrade();downgradeCooldown=10;lowFpsStreak=0;}}else if(fps>32){lowFpsStreak=0;}}}}
+ui.q('#deploy').onclick=()=>{audio.ensure();running=true;ui.start();touch?.show(true);if(!IS_MOBILE&&canvas.requestPointerLock){try{canvas.requestPointerLock()}catch(e){}}requestAnimationFrame(loop)};ui.q('#resume').onclick=()=>{ui.pause.classList.add('hidden');running=true;if(!IS_MOBILE)canvas.requestPointerLock();touch?.show(true)};ui.q('#restart').onclick=()=>location.reload();ui.q('#playAgain').onclick=()=>location.reload();input.onFire=v=>weapon.setTrigger(v);input.onReload=()=>weapon.reload();input.onHolster=()=>weapon.toggleHolster();input.onWeapon=i=>weapon.switchTo(i);input.onArmory=()=>{running=false;armory.toggle();if(!armory.open)running=true;touch?.show(!armory.open)};input.onInteract=()=>{if(nearPickup&&!nearPickup.taken){weapon.unlock(nearPickup.index);nearPickup.remove();nearPickup=null;ui.prompt(null,false)}};input.onPause=()=>{if(ui.menu.classList.contains('hidden')&&ui.victory.classList.contains('hidden')){running=!running;ui.pause.classList.toggle('hidden',running);if(!running)ui.finalStats('#pauseStats',matchStats);touch?.show(running)}};input.onADS=(v)=>{weapon.toggleADS(v);ui.setScope(v);};input.onGrenade=()=>grenades.throw_();
+function loop(now){requestAnimationFrame(loop);const dt=Math.min(.033,(now-last)/1000);last=now;if(running){player.update(dt);weapon.update(dt,enemies);grenades.update(dt,enemies);for(const e of enemies) e.update(dt);const alive=enemies.filter(e=>!e.dead);ui.updateEnemyCount(alive.length);matchStats.time+=dt;ui.updateMatch(matchStats.time,matchStats.kills,totalEnemies);ui.updateCompass(((-player.yaw*180/Math.PI)%360+360)%360);ui.updateMinimap(player,enemies,pickups,extras.medkits);extras.update(dt);for(let i=extras.medkits.length-1;i>=0;i--){const mk=extras.medkits[i];if(player.health<100&&mk.group.position.distanceTo(player.position)<2.2){player.health=Math.min(100,player.health+35);scene.remove(mk.group);extras.medkits.splice(i,1);ui.toast('MEDKIT RECOVERED // +35 VITALS');}}nearPickup=null;let best=Infinity;for(const p of pickups)if(!p.taken&&p.update(dt,player)){const d=p.mesh.position.distanceTo(player.position);if(d<best){best=d;nearPickup=p}}ui.prompt(nearPickup?WEAPONS[nearPickup.index]:null,!!nearPickup);touch?.setInteractVisible(!!nearPickup);ui.updateVitals(player);if(player.health<=0){running=false;ui.pause.classList.remove('hidden');ui.pause.querySelector('h1').textContent='Operator down';ui.finalStats('#pauseStats',matchStats);touch?.show(false)}if(weapon.unlocked.size===WEAPONS.length)ui.toast('FULL ARSENAL RECOVERED // 21 OF 21');if(alive.length===0&&!weapon.holstered){running=false;ui.finalStats('#victoryStats',matchStats);ui.showVictory();touch?.show(false);}}renderer.render(dt);fpsT+=dt;frames++;if(fpsT>.5){const fps=frames/fpsT;ui.setFPS(Math.round(fps));fpsT=frames=0;if(downgradeCooldown>0)downgradeCooldown--;if(running){if(fps<24){lowFpsStreak++;if(lowFpsStreak>=4&&downgradeCooldown<=0&&renderer.qualityLevel<3){renderer.downgrade();downgradeCooldown=10;lowFpsStreak=0;}}else if(fps>32){lowFpsStreak=0;}}}}
 requestAnimationFrame(loop);
   </script>
 </body>
